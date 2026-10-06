@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RMS Titanic - ML Survival Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="glow-container">
+        <div class="glow-orb blue"></div>
+        <div class="glow-orb gold"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="main-header">
+            <div class="header-logo">
+                <i class="fa-solid fa-ship ship-icon"></i>
+                <div class="logo-text">
+                    <h1>RMS TITANIC</h1>
+                    <span class="sub-logo">SYSTEMA DE ANALÍTICA Y PREDICCIÓN ML</span>
+                </div>
+            </div>
+            <div class="header-meta">
+                <span class="meta-badge"><i class="fa-solid fa-calendar-days"></i> 15 de Abril, 1912</span>
+                <span class="meta-badge"><i class="fa-solid fa-location-dot"></i> Atlántico Norte</span>
+            </div>
+        </header>
+
+        <!-- NAVIGATION TABS -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="simulator-tab">
+                <i class="fa-solid fa-ticket-simple"></i> Bitácora de Abordo
+            </button>
+            <button class="tab-btn" data-tab="metrics-tab">
+                <i class="fa-solid fa-chart-line"></i> Diagnóstico de Modelos
+            </button>
+            <button class="tab-btn" data-tab="explorer-tab">
+                <i class="fa-solid fa-compass"></i> Registro Histórico
+            </button>
+        </nav>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="content-area">
+            
+            <!-- TAB 1: SIMULATOR (PREDICTOR) -->
+            <section id="simulator-tab" class="tab-content active">
+                <div class="grid-2col">
+                    <!-- Passenger Input Card -->
+                    <div class="card glass-card border-gold">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-signature text-gold"></i> Registro de Pasajero</h2>
+                            <p>Ingresa los detalles para calcular la probabilidad de supervivencia simulada.</p>
+                        </div>
+                        <form id="predictor-form" class="passenger-form">
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="pclass"><i class="fa-solid fa-crown text-gold"></i> Clase de Boleto</label>
+                                    <select id="pclass" required>
+                                        <option value="1">Primera Clase (Lujo)</option>
+                                        <option value="2">Segunda Clase (Turista)</option>
+                                        <option value="3" selected>Tercera Clase (Inmigrante)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="sex"><i class="fa-solid fa-venus-mars"></i> Género</label>
+                                    <select id="sex" required>
+                                        <option value="male" selected>Hombre</option>
+                                        <option value="female">Mujer</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="age"><i class="fa-solid fa-circle-user"></i> Edad: <span id="age-val">25</span> años</label>
+                                    <input type="range" id="age" min="1" max="80" value="25" step="1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="fare"><i class="fa-solid fa-sterling-sign"></i> Tarifa: £<span id="fare-val">8.05</span></label>
+                                    <input type="range" id="fare" min="0" max="512" value="8.05" step="0.01">
+                                    <div class="fare-shortcuts">
+                                        <span class="badge" onclick="setFare(75)">£75 (Prom. 1a)</span>
+                                        <span class="badge" onclick="setFare(20)">£20 (Prom. 2a)</span>
+                                        <span class="badge" onclick="setFare(8.05)">£8 (Prom. 3a)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="sibsp"><i class="fa-solid fa-people-group"></i> Hermanos / Esposo(a)</label>
+                                    <input type="number" id="sibsp" min="0" max="8" value="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="parch"><i class="fa-solid fa-children"></i> Padres / Hijos</label>
+                                    <input type="number" id="parch" min="0" max="6" value="0" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="embarked"><i class="fa-solid fa-anchor"></i> Puerto de Embarque</label>
+                                <select id="embarked" required>
+                                    <option value="S" selected>Southampton (Inglaterra)</option>
+                                    <option value="C">Cherbourg (Francia)</option>
+                                    <option value="Q">Queenstown (Irlanda)</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-gold btn-block">
+                                <i class="fa-solid fa-circle-nodes"></i> Calcular Supervivencia
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Result Card -->
+                    <div class="card glass-card result-panel border-cyan">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-chart-pie text-cyan"></i> Veredicto del Simulador</h2>
+                            <p>Proyecciones basadas en modelos de inteligencia artificial.</p>
+                        </div>
+                        
+                        <div id="result-placeholder" class="result-placeholder">
+                            <i class="fa-solid fa-hourglass-half waiting-icon"></i>
+                            <p>Esperando datos de registro...</p>
+                            <span>Completa el formulario y presiona "Calcular Supervivencia" para ver la estimación de los algoritmos.</span>
+                        </div>
+
+                        <div id="result-content" class="result-content hidden">
+                            <div class="prob-visualizer">
+                                <!-- Model 1: Random Forest -->
+                                <div class="model-prob-card">
+                                    <span class="model-title">Random Forest (Árboles)</span>
+                                    <div class="radial-progress-container">
+                                        <svg class="radial-svg" viewBox="0 0 100 100">
+                                            <circle class="bg-circle" cx="50" cy="50" r="40"></circle>
+                                            <circle id="rf-progress" class="fg-circle" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                                        </svg>
+                                        <div id="rf-prob-text" class="prob-percentage">0%</div>
+                                    </div>
+                                    <div id="rf-badge" class="badge">--</div>
+                                </div>
+
+                                <!-- Model 2: Logistic Regression -->
+                                <div class="model-prob-card">
+                                    <span class="model-title">Regresión Logística</span>
+                                    <div class="radial-progress-container">
+                                        <svg class="radial-svg" viewBox="0 0 100 100">
+                                            <circle class="bg-circle" cx="50" cy="50" r="40"></circle>
+                                            <circle id="lr-progress" class="fg-circle" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                                        </svg>
+                                        <div id="lr-prob-text" class="prob-percentage">0%</div>
+                                    </div>
+                                    <div id="lr-badge" class="badge">--</div>
+                                </div>
+                            </div>
+
+                            <div class="narrative-box">
+                                <div class="narrative-icon"><i class="fa-solid fa-book-open text-gold"></i></div>
+                                <div id="verdict-narrative" class="narrative-text"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: MODEL DIAGNOSTICS (METRICS) -->
+            <section id="metrics-tab" class="tab-content">
+                <div class="grid-2col">
+                    <!-- Random Forest Card -->
+                    <div class="card glass-card">
+                        <div class="card-header flex-header">
+                            <div>
+                                <h2>Random Forest Classifier</h2>
+                                <span class="badge badge-gold">Conjunto de Árboles</span>
+                            </div>
+                            <div class="accuracy-show">
+                                <span class="metric-lbl">Accuracy</span>
+                                <span id="rf-accuracy" class="metric-val text-gold">0.0%</span>
+                            </div>
+                        </div>
+                        <div class="metrics-grid">
+                            <div class="metric-pill">
+                                <span class="lbl">Precision</span>
+                                <span id="rf-precision" class="val">0.0%</span>
+                            </div>
+                            <div class="metric-pill">
+                                <span class="lbl">Recall</span>
+                                <span id="rf-recall" class="val">0.0%</span>
+                            </div>
+                            <div class="metric-pill">
+                                <span class="lbl">F1-Score</span>
+                                <span id="rf-f1" class="val">0.0%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="matrix-section">
+                            <h3>Matriz de Confusión</h3>
+                            <div class="confusion-matrix-table">
+                                <div class="cm-cell header-cell"></div>
+                                <div class="cm-cell header-cell">Pred. No</div>
+                                <div class="cm-cell header-cell">Pred. Sí</div>
+                                <div class="cm-cell header-cell row-header">Real No</div>
+                                <div id="rf-cm-tn" class="cm-cell cm-val count-dead">0</div>
+                                <div id="rf-cm-fp" class="cm-cell cm-val count-error">0</div>
+                                <div class="cm-cell header-cell row-header">Real Sí</div>
+                                <div id="rf-cm-fn" class="cm-cell cm-val count-error">0</div>
+                                <div id="rf-cm-tp" class="cm-cell cm-val count-live">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logistic Regression Card -->
+                    <div class="card glass-card">
+                        <div class="card-header flex-header">
+                            <div>
+                                <h2>Logistic Regression</h2>
+                                <span class="badge badge-cyan">Modelo Lineal</span>
+                            </div>
+                            <div class="accuracy-show">
+                                <span class="metric-lbl">Accuracy</span>
+                                <span id="lr-accuracy" class="metric-val text-cyan">0.0%</span>
+                            </div>
+                        </div>
+                        <div class="metrics-grid">
+                            <div class="metric-pill">
+                                <span class="lbl">Precision</span>
+                                <span id="lr-precision" class="val">0.0%</span>
+                            </div>
+                            <div class="metric-pill">
+                                <span class="lbl">Recall</span>
+                                <span id="lr-recall" class="val">0.0%</span>
+                            </div>
+                            <div class="metric-pill">
+                                <span class="lbl">F1-Score</span>
+                                <span id="lr-f1" class="val">0.0%</span>
+                            </div>
+                        </div>
+
+                        <div class="matrix-section">
+                            <h3>Matriz de Confusión</h3>
+                            <div class="confusion-matrix-table">
+                                <div class="cm-cell header-cell"></div>
+                                <div class="cm-cell header-cell">Pred. No</div>
+                                <div class="cm-cell header-cell">Pred. Sí</div>
+                                <div class="cm-cell header-cell row-header">Real No</div>
+                                <div id="lr-cm-tn" class="cm-cell cm-val count-dead">0</div>
+                                <div id="lr-cm-fp" class="cm-cell cm-val count-error">0</div>
+                                <div class="cm-cell header-cell row-header">Real Sí</div>
+                                <div id="lr-cm-fn" class="cm-cell cm-val count-error">0</div>
+                                <div id="lr-cm-tp" class="cm-cell cm-val count-live">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Importance Section -->
+                <div class="card glass-card full-width border-gold mt-20">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-sliders text-gold"></i> Influencia de las Características (Feature Importances / Coefficients)</h2>
+                        <p>A la izquierda se muestran los factores de peso para Random Forest (importancia relativa). A la derecha, el impacto y sentido de los coeficientes de Regresión Logística.</p>
+                    </div>
+                    <div class="grid-2col">
+                        <div class="chart-wrapper">
+                            <h3>Random Forest - Importancia</h3>
+                            <canvas id="rf-features-chart"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <h3>Regresión Logística - Coeficientes</h3>
+                            <canvas id="lr-features-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: HISTORICAL EXPLORER (DATA ANALYSIS) -->
+            <section id="explorer-tab" class="tab-content">
+                <!-- Summary bar -->
+                <div class="summary-bar">
+                    <div class="summary-item">
+                        <span class="summary-lbl">Pasajeros Analizados</span>
+                        <span id="stat-total" class="summary-val">891</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-lbl">Sobrevivientes</span>
+                        <span id="stat-survived" class="summary-val">342</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-lbl">Tasa de Supervivencia</span>
+                        <span id="stat-rate" class="summary-val">38.3%</span>
+                    </div>
+                </div>
+
+                <div class="grid-2col">
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <h3>Supervivencia por Género</h3>
+                            <p>Mapeo de la regla histórica "Mujeres y niños primero".</p>
+                        </div>
+                        <div class="chart-wrapper font-chart">
+                            <canvas id="gender-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <h3>Supervivencia por Clase de Boleto</h3>
+                            <p>Visualización del impacto socioeconómico en las tasas de escape.</p>
+                        </div>
+                        <div class="chart-wrapper font-chart">
+                            <canvas id="class-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2col mt-20">
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <h3>Supervivencia por Grupos de Edad</h3>
+                            <p>Rangos de edad distribuidos y su respectivo promedio de supervivencia.</p>
+                        </div>
+                        <div class="chart-wrapper font-chart">
+                            <canvas id="age-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <h3>Tasa de Supervivencia por Puerto de Embarque</h3>
+                            <p>Cherbourg (C), Queenstown (Q) y Southampton (S).</p>
+                        </div>
+                        <div class="chart-wrapper font-chart">
+                            <canvas id="embarked-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="main-footer">
+            <p>RMS Titanic ML Prediction Portal &bull; Desarrollado en Obsidian Theme</p>
+            <div class="footer-decor">
+                <span class="line gold-line"></span>
+                <span class="star-decor"><i class="fa-regular fa-star"></i></span>
+                <span class="line gold-line"></span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
